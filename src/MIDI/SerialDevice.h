@@ -64,26 +64,36 @@ public:
       return false;
 
     uint8_t b = _uart->read();
-    if (b & 0x80)
+
+    if (b & 0x80) {
+      switch (b) {
+        // Real-Time messages do not update the current Running Status. Do not process,
+        // forward them immediately.
+        case (uint8_t)Packet::Status::SystemClock:
+        case (uint8_t)Packet::Status::SystemStart:
+        case (uint8_t)Packet::Status::SystemContinue:
+        case (uint8_t)Packet::Status::SystemStop:
+        case (uint8_t)Packet::Status::SystemActiveSensing:
+        case (uint8_t)Packet::Status::SystemReset:
+          midi->set(0, (Packet::Status)b, 0, 0);
+          statistics.input++;
+          return true;
+      }
+
       _state = State::Status;
+    }
 
     switch (_state) {
       case State::Idle:
         return false;
 
       case State::Status: {
+        _status  = Packet::getStatus(b);
         _channel = b & 0x0f;
-        _status  = (Packet::Status)(b & 0xf0);
         switch (_status) {
-          // Single byte message.
+          // Single byte message, the Real-Time messages are already handled.
           case Packet::Status::SystemTuneRequest:
-          case Packet::Status::SystemClock:
-          case Packet::Status::SystemStart:
-          case Packet::Status::SystemContinue:
-          case Packet::Status::SystemStop:
-          case Packet::Status::SystemActiveSensing:
-          case Packet::Status::SystemReset:
-            midi->set(_channel, _status, 0, 0);
+            midi->set(0, _status, 0, 0);
             _state = State::Idle;
             statistics.input++;
             return true;
@@ -140,8 +150,8 @@ public:
         return true;
 
       case State::SysEx:
-        // System Exclusive is not processed right now. Just discard
-        // the bytes until the next status byte.
+        // System Exclusive is not processed right now. Just discard  the bytes
+        // until the next status byte arrives.
         return false;
     }
 
@@ -149,7 +159,6 @@ public:
   }
 
 private:
-  Uart *_uart;
   enum class State {
     Idle,
     Status,
@@ -157,8 +166,11 @@ private:
     Data2,
     SysEx,
   } _state{};
+
   uint8_t _channel{};
   Packet::Status _status{};
   uint8_t _data1{};
+
+  Uart *_uart;
 };
 };

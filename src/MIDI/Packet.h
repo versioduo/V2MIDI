@@ -79,14 +79,18 @@ public:
     _data[1] |= channel;
   }
 
-  Status getType() const {
-    // Remove channel number
-    Status status = static_cast<Status>(_data[1] & 0xf0);
+  static Status getStatus(uint8_t b) {
+    // Remove channel number.
+    Status status = static_cast<Status>(b & 0xf0);
     if (status != Status::System)
       return status;
 
     // 'System' messages carry their message type.
-    return static_cast<Status>(_data[1]);
+    return static_cast<Status>(b);
+  }
+
+  Status getType() const {
+    return getStatus(_data[1]);
   }
 
   uint8_t getNote() const {
@@ -202,6 +206,7 @@ public:
       case Status::SystemReset:
         if (channel > 0)
           return NULL;
+
         _data[0] |= static_cast<uint8_t>(CodeIndex::SingleByte);
         break;
 
