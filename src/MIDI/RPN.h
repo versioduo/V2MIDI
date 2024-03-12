@@ -16,4 +16,4 @@ namespace V2MIDI::RPN {
     ThreeDimensionalSound = (0x3d << 7),         // All LSB values are reserved.
     Null                  = ((0x7f << 7) | 0x7f) // De-select current NRPN, RPN.
   };
-};
+}

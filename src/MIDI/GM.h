@@ -235,4 +235,4 @@ namespace V2MIDI::GM {
       OpenSurdo        = 87,
     };
   };
-};
+}
