@@ -61,11 +61,11 @@ namespace V2MIDI {
     };
 
     // Set virtual port/wire in the packet. Port 1 == 0.
-    uint8_t getPort() const {
+    constexpr uint8_t getPort() const {
       return _data[0] >> 4;
     }
 
-    void setPort(uint8_t port) {
+    constexpr void setPort(uint8_t port) {
       _data[0] &= 0x0f;
       _data[0] |= port << 4;
     }
@@ -74,12 +74,12 @@ namespace V2MIDI {
       return _data[1] & 0x0f;
     }
 
-    void setChannel(uint8_t channel) {
+    constexpr void setChannel(uint8_t channel) {
       _data[1] &= 0xf0;
       _data[1] |= channel;
     }
 
-    static Status getStatus(uint8_t b) {
+    constexpr static Status getStatus(uint8_t b) {
       // Remove channel number.
       Status status = static_cast<Status>(b & 0xf0);
       if (status != Status::System)
@@ -89,68 +89,68 @@ namespace V2MIDI {
       return static_cast<Status>(b);
     }
 
-    Status getType() const {
+    constexpr Status getType() const {
       return getStatus(_data[1]);
     }
 
-    uint8_t getNote() const {
+    constexpr uint8_t getNote() const {
       return _data[2];
     }
 
-    uint8_t getNoteVelocity() const {
+    constexpr uint8_t getNoteVelocity() const {
       return _data[3];
     }
 
-    uint8_t getAftertouchNote() const {
+    constexpr uint8_t getAftertouchNote() const {
       return _data[2];
     }
 
-    uint8_t getAftertouch() const {
+    constexpr uint8_t getAftertouch() const {
       return _data[3];
     }
 
-    uint8_t getController() const {
+    constexpr uint8_t getController() const {
       return _data[2];
     }
 
-    uint8_t getControllerValue() const {
+    constexpr uint8_t getControllerValue() const {
       return _data[3];
     }
 
-    uint8_t getProgram() const {
+    constexpr uint8_t getProgram() const {
       return _data[2];
     }
 
-    uint8_t getAftertouchChannel() const {
+    constexpr uint8_t getAftertouchChannel() const {
       return _data[2];
     }
 
-    int16_t getPitchBend() const {
+    constexpr int16_t getPitchBend() const {
       // 14 bit – 8192..8191.
       const int16_t value = _data[3] << 7 | _data[2];
       return value - 8192;
     }
 
-    uint16_t getSongPosition() const {
+    constexpr uint16_t getSongPosition() const {
       return _data[3] << 7 | _data[2];
     }
 
-    uint16_t getSongSelect() const {
+    constexpr uint16_t getSongSelect() const {
       return _data[2];
     }
 
-    const uint8_t* getData() const {
+    constexpr const uint8_t* getData() const {
       return _data;
     }
 
-    Packet* setData(const uint8_t data[4]) {
+    constexpr Packet* setData(const uint8_t data[4]) {
       memcpy(_data, data, 4);
       return this;
     }
 
     // Encode values into the packet and return is own pointer to allow the
     // stacking of function calls.
-    Packet* set(uint8_t channel, Status type, uint8_t data1 = 0, uint8_t data2 = 0) {
+    constexpr Packet* set(uint8_t channel, Status type, uint8_t data1 = 0, uint8_t data2 = 0) {
       _data[0] &= 0xf0;
 
       switch (type) {
@@ -221,7 +221,7 @@ namespace V2MIDI {
       return this;
     }
 
-    Packet* setNote(uint8_t channel, uint8_t note, uint8_t velocity) {
+    constexpr Packet* setNote(uint8_t channel, uint8_t note, uint8_t velocity) {
       // "64 appears to be a reasonable compromise for devices which respond to NoteOff velocity."
       if (velocity == 0)
         return set(channel, Status::NoteOff, note, 64);
@@ -229,27 +229,27 @@ namespace V2MIDI {
       return set(channel, Status::NoteOn, note, velocity);
     }
 
-    Packet* setNoteOff(uint8_t channel, uint8_t note, uint8_t velocity) {
+    constexpr Packet* setNoteOff(uint8_t channel, uint8_t note, uint8_t velocity) {
       return set(channel, Status::NoteOff, note, velocity);
     }
 
-    Packet* setAftertouch(uint8_t channel, uint8_t note, uint8_t pressure) {
+    constexpr Packet* setAftertouch(uint8_t channel, uint8_t note, uint8_t pressure) {
       return set(channel, Status::Aftertouch, note, pressure);
     }
 
-    Packet* setControlChange(uint8_t channel, uint8_t controller, uint8_t value = 0) {
+    constexpr Packet* setControlChange(uint8_t channel, uint8_t controller, uint8_t value = 0) {
       return set(channel, Status::ControlChange, controller, value);
     }
 
-    Packet* setAftertouchChannel(uint8_t channel, uint8_t pressure) {
+    constexpr Packet* setAftertouchChannel(uint8_t channel, uint8_t pressure) {
       return set(channel, Status::AftertouchChannel, pressure, 0);
     }
 
-    Packet* setProgram(uint8_t channel, uint8_t value) {
+    constexpr Packet* setProgram(uint8_t channel, uint8_t value) {
       return set(channel, Status::ProgramChange, value, 0);
     }
 
-    Packet* setPitchBend(uint8_t channel, int16_t value) {
+    constexpr Packet* setPitchBend(uint8_t channel, int16_t value) {
       // 14 bit – 8192..8191.
       const uint16_t bits = value + 8192;
       return set(channel, Status::PitchBend, bits & 0x7f, (bits >> 7) & 0x7f);

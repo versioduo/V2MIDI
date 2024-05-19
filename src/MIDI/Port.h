@@ -31,6 +31,7 @@ namespace V2MIDI {
       } system;
     };
 
+    Port() = delete;
     constexpr Port(uint8_t index, uint32_t sysexSize) : _index{index}, _sysexSize{sysexSize} {}
 
     void begin() {
