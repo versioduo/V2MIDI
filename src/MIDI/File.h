@@ -199,7 +199,7 @@ namespace V2MIDI::File {
   public:
     enum class State { Empty, Loaded, Play, Stop };
 
-    constexpr Tracks(){};
+    constexpr Tracks() {}
     constexpr Tracks(const uint8_t* data = NULL) {
       load(data);
     }
@@ -383,12 +383,12 @@ namespace V2MIDI::File {
               case Packet::Status::Aftertouch:
               case Packet::Status::ControlChange:
               case Packet::Status::PitchBend:
-                handleSend(i, midi.set(e->channel, e->status, e->data[0], e->data[1]));
+                handleSend(i, midi.set(e->status, e->channel, e->data[0], e->data[1]));
                 break;
 
               case Packet::Status::ProgramChange:
               case Packet::Status::AftertouchChannel:
-                handleSend(i, midi.set(e->channel, e->status, e->data[0]));
+                handleSend(i, midi.set(e->status, e->channel, e->data[0]));
                 break;
             }
           }

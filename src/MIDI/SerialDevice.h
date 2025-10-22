@@ -1,8 +1,4 @@
-// © Kay Sievers <kay@versioduo.com>, 2020-2023
-// SPDX-License-Identifier: Apache-2.0
-
 #pragma once
-
 #include "Packet.h"
 #include "Transport.h"
 #include <V2Base.h>
@@ -17,12 +13,20 @@ namespace V2MIDI {
 
     constexpr SerialDevice(Uart* uart) : _uart(uart) {}
 
-    void begin() {
+    auto begin() {
       _uart->begin(31250);
       _uart->setTimeout(1);
     }
 
-    bool send(Packet* midi) {
+    auto reset() {
+      _state     = {};
+      statistics = {};
+      _channel   = {};
+      _status    = {};
+      _data1     = {};
+    }
+
+    auto send(Packet* midi) -> bool {
       switch (midi->getType()) {
         case Packet::Status::NoteOn:
         case Packet::Status::NoteOff:
@@ -61,7 +65,7 @@ namespace V2MIDI {
       return false;
     }
 
-    bool receive(Packet* midi) {
+    auto receive(Packet* midi) -> bool {
       if (_uart->available() == 0)
         return false;
 
@@ -77,7 +81,7 @@ namespace V2MIDI {
           case (uint8_t)Packet::Status::SystemStop:
           case (uint8_t)Packet::Status::SystemActiveSensing:
           case (uint8_t)Packet::Status::SystemReset:
-            midi->set(0, (Packet::Status)b, 0, 0);
+            midi->setSystem(Packet::Status(b), 0, 0);
             statistics.input++;
             return true;
         }
@@ -95,7 +99,7 @@ namespace V2MIDI {
           switch (_status) {
             // Single byte message, the Real-Time messages are already handled.
             case Packet::Status::SystemTuneRequest:
-              midi->set(0, _status, 0, 0);
+              midi->set(_status, 0, 0, 0);
               _state = State::Idle;
               statistics.input++;
               return true;
@@ -127,7 +131,7 @@ namespace V2MIDI {
             case Packet::Status::AftertouchChannel:
             case Packet::Status::SystemTimeCodeQuarterFrame:
             case Packet::Status::SystemSongSelect:
-              midi->set(_channel, _status, b, 0);
+              midi->set(_status, _channel, b, 0);
               _state = State::Idle;
               statistics.input++;
               return true;
@@ -146,7 +150,7 @@ namespace V2MIDI {
           break;
 
         case State::Data2:
-          midi->set(_channel, _status, _data1, b);
+          midi->set(_status, _channel, _data1, b);
           _state = State::Idle;
           statistics.input++;
           return true;

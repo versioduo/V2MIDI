@@ -1,8 +1,4 @@
-// © Kay Sievers <kay@versioduo.com>, 2020-2023
-// SPDX-License-Identifier: Apache-2.0
-
 #pragma once
-
 #include "Clock.h"
 #include "Packet.h"
 #include "Transport.h"
@@ -292,8 +288,8 @@ namespace V2MIDI {
     virtual void handleProgramChange(uint8_t channel, uint8_t value) {}
     virtual void handleAftertouchChannel(uint8_t channel, uint8_t pressure) {}
     virtual void handlePitchBend(uint8_t channel, int16_t value) {}
-    virtual void handleSongPosition(uint16_t beats){};
-    virtual void handleSongSelect(uint8_t number){};
+    virtual void handleSongPosition(uint16_t beats) {}
+    virtual void handleSongSelect(uint8_t number) {}
     virtual void handleClock(Clock::Event clock) {}
     virtual void handleSystemExclusive(const uint8_t* buffer, uint32_t len) {}
     virtual void handleSystemReset() {}

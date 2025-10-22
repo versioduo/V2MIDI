@@ -61,140 +61,124 @@ namespace V2MIDI {
     };
 
     // Set virtual port/wire in the packet. Port 1 == 0.
-    constexpr uint8_t getPort() const {
+    auto getPort() const -> uint8_t {
       return _data[0] >> 4;
     }
 
-    constexpr void setPort(uint8_t port) {
+    auto setPort(uint8_t port) {
       _data[0] &= 0x0f;
       _data[0] |= port << 4;
     }
 
-    uint8_t getChannel() const {
+    auto getChannel() const -> uint8_t {
       return _data[1] & 0x0f;
     }
 
-    constexpr void setChannel(uint8_t channel) {
+    auto setChannel(uint8_t channel) {
       _data[1] &= 0xf0;
       _data[1] |= channel;
     }
 
-    constexpr static Status getStatus(uint8_t b) {
+    static auto getStatus(uint8_t b) -> Status {
       // Remove channel number.
-      Status status = static_cast<Status>(b & 0xf0);
-      if (status != Status::System)
+      if (auto status{Status(b & 0xf0)}; status != Status::System)
         return status;
 
       // 'System' messages carry their message type.
-      return static_cast<Status>(b);
+      return Status(b);
     }
 
-    constexpr Status getType() const {
+    auto getType() const -> Status {
       return getStatus(_data[1]);
     }
 
-    constexpr uint8_t getNote() const {
+    auto getNote() const -> uint8_t {
       return _data[2];
     }
 
-    constexpr uint8_t getNoteVelocity() const {
+    auto getNoteVelocity() const -> uint8_t {
       return _data[3];
     }
 
-    constexpr uint8_t getAftertouchNote() const {
+    auto getAftertouchNote() const -> uint8_t {
       return _data[2];
     }
 
-    constexpr uint8_t getAftertouch() const {
+    auto getAftertouch() const -> uint8_t {
       return _data[3];
     }
 
-    constexpr uint8_t getController() const {
+    auto getController() const -> uint8_t {
       return _data[2];
     }
 
-    constexpr uint8_t getControllerValue() const {
+    auto getControllerValue() const {
       return _data[3];
     }
 
-    constexpr uint8_t getProgram() const {
+    auto getProgram() const -> uint8_t {
       return _data[2];
     }
 
-    constexpr uint8_t getAftertouchChannel() const {
+    auto getAftertouchChannel() const -> uint8_t {
       return _data[2];
     }
 
-    constexpr int16_t getPitchBend() const {
+    auto getPitchBend() const -> uint16_t {
       // 14 bit – 8192..8191.
-      const int16_t value = _data[3] << 7 | _data[2];
+      auto value{int16_t(_data[3] << 7 | _data[2])};
       return value - 8192;
     }
 
-    constexpr uint16_t getSongPosition() const {
+    auto getSongPosition() const -> uint16_t {
       return _data[3] << 7 | _data[2];
     }
 
-    constexpr uint16_t getSongSelect() const {
+    auto getSongSelect() const -> uint16_t {
       return _data[2];
     }
 
-    constexpr const uint8_t* getData() const {
+    auto data() -> uint8_t* {
       return _data;
     }
 
-    constexpr Packet* setData(const uint8_t data[4]) {
-      memcpy(_data, data, 4);
-      return this;
-    }
-
-    // Encode values into the packet and return is own pointer to allow the
-    // stacking of function calls.
-    constexpr Packet* set(uint8_t channel, Status type, uint8_t data1 = 0, uint8_t data2 = 0) {
-      _data[0] &= 0xf0;
-
-      switch (type) {
+    auto set(uint8_t data0, uint8_t data1 = 0, uint8_t data2 = 0) -> Packet* {
+      switch (getStatus(data0)) {
         case Status::NoteOff:
-          _data[0] |= static_cast<uint8_t>(CodeIndex::NoteOff);
+          _data[0] |= uint8_t(CodeIndex::NoteOff);
           break;
 
         case Status::NoteOn:
-          _data[0] |= static_cast<uint8_t>(CodeIndex::NoteOn);
+          _data[0] |= uint8_t(CodeIndex::NoteOn);
           break;
 
         case Status::Aftertouch:
-          _data[0] |= static_cast<uint8_t>(CodeIndex::Aftertouch);
+          _data[0] |= uint8_t(CodeIndex::Aftertouch);
           break;
 
         case Status::ControlChange:
-          _data[0] |= static_cast<uint8_t>(CodeIndex::ControlChange);
+          _data[0] |= uint8_t(CodeIndex::ControlChange);
           break;
 
         case Status::ProgramChange:
-          _data[0] |= static_cast<uint8_t>(CodeIndex::ProgramChange);
+          _data[0] |= uint8_t(CodeIndex::ProgramChange);
           break;
 
         case Status::AftertouchChannel:
-          _data[0] |= static_cast<uint8_t>(CodeIndex::AftertouchChannel);
+          _data[0] |= uint8_t(CodeIndex::AftertouchChannel);
           break;
 
         case Status::PitchBend:
-          _data[0] |= static_cast<uint8_t>(CodeIndex::PitchBend);
+          _data[0] |= uint8_t(CodeIndex::PitchBend);
           break;
 
-        // System messages are global and encode their message type in
-        // the 'channel number'.
         case Status::SystemSongSelect:
         case Status::SystemTimeCodeQuarterFrame:
-          if (channel > 0)
-            return NULL;
-          _data[0] |= static_cast<uint8_t>(CodeIndex::SystemCommon2);
+          _data[0] |= uint8_t(CodeIndex::SystemCommon2);
           break;
 
         case Status::SystemSongPosition:
-          if (channel > 0)
-            return NULL;
-          _data[0] |= static_cast<uint8_t>(CodeIndex::SystemCommon3);
+          _data[0] |= uint8_t(CodeIndex::SystemCommon3);
           break;
 
         case Status::SystemTuneRequest:
@@ -204,55 +188,122 @@ namespace V2MIDI {
         case Status::SystemStop:
         case Status::SystemActiveSensing:
         case Status::SystemReset:
-          if (channel > 0)
-            return NULL;
-
-          _data[0] |= static_cast<uint8_t>(CodeIndex::SingleByte);
+          _data[0] |= uint8_t(CodeIndex::SingleByte);
           break;
-
-        // System Exclusive messages have their own API
-        default:
-          return NULL;
       }
 
-      _data[1] = static_cast<uint8_t>(type) | channel;
+      _data[1] = data0;
       _data[2] = data1;
       _data[3] = data2;
       return this;
     }
 
-    constexpr Packet* setNote(uint8_t channel, uint8_t note, uint8_t velocity) {
-      // "64 appears to be a reasonable compromise for devices which respond to NoteOff velocity."
+    auto set(Status type, uint8_t channel, uint8_t data1 = 0, uint8_t data2 = 0) -> Packet* {
+      _data[0] &= 0xf0;
+
+      switch (type) {
+        case Status::NoteOff:
+          _data[0] |= uint8_t(CodeIndex::NoteOff);
+          break;
+
+        case Status::NoteOn:
+          _data[0] |= uint8_t(CodeIndex::NoteOn);
+          break;
+
+        case Status::Aftertouch:
+          _data[0] |= uint8_t(CodeIndex::Aftertouch);
+          break;
+
+        case Status::ControlChange:
+          _data[0] |= uint8_t(CodeIndex::ControlChange);
+          break;
+
+        case Status::ProgramChange:
+          _data[0] |= uint8_t(CodeIndex::ProgramChange);
+          break;
+
+        case Status::AftertouchChannel:
+          _data[0] |= uint8_t(CodeIndex::AftertouchChannel);
+          break;
+
+        case Status::PitchBend:
+          _data[0] |= uint8_t(CodeIndex::PitchBend);
+          break;
+
+        default:
+          std::abort();
+      }
+
+      _data[1] = uint8_t(type) | channel;
+      _data[2] = data1;
+      _data[3] = data2;
+      return this;
+    }
+
+    auto setSystem(Status type, uint8_t data1 = 0, uint8_t data2 = 0) -> Packet* {
+      _data[0] &= 0xf0;
+
+      switch (type) {
+        case Status::SystemSongSelect:
+        case Status::SystemTimeCodeQuarterFrame:
+          _data[0] |= uint8_t(CodeIndex::SystemCommon2);
+          break;
+
+        case Status::SystemSongPosition:
+          _data[0] |= uint8_t(CodeIndex::SystemCommon3);
+          break;
+
+        case Status::SystemTuneRequest:
+        case Status::SystemClock:
+        case Status::SystemStart:
+        case Status::SystemContinue:
+        case Status::SystemStop:
+        case Status::SystemActiveSensing:
+        case Status::SystemReset:
+          _data[0] |= uint8_t(CodeIndex::SingleByte);
+          break;
+
+        default:
+          std::abort();
+      }
+
+      _data[1] = uint8_t(type);
+      _data[2] = data1;
+      _data[3] = data2;
+      return this;
+    }
+
+    auto setNote(uint8_t channel, uint8_t note, uint8_t velocity) -> Packet* {
       if (velocity == 0)
-        return set(channel, Status::NoteOff, note, 64);
+        return set(Status::NoteOff, channel, note, 64);
 
-      return set(channel, Status::NoteOn, note, velocity);
+      return set(Status::NoteOn, channel, note, velocity);
     }
 
-    constexpr Packet* setNoteOff(uint8_t channel, uint8_t note, uint8_t velocity) {
-      return set(channel, Status::NoteOff, note, velocity);
+    auto setNoteOff(uint8_t channel, uint8_t note, uint8_t velocity) -> Packet* {
+      return set(Status::NoteOff, channel, note, velocity);
     }
 
-    constexpr Packet* setAftertouch(uint8_t channel, uint8_t note, uint8_t pressure) {
-      return set(channel, Status::Aftertouch, note, pressure);
+    auto setAftertouch(uint8_t channel, uint8_t note, uint8_t pressure) -> Packet* {
+      return set(Status::Aftertouch, channel, note, pressure);
     }
 
-    constexpr Packet* setControlChange(uint8_t channel, uint8_t controller, uint8_t value = 0) {
-      return set(channel, Status::ControlChange, controller, value);
+    auto setControlChange(uint8_t channel, uint8_t controller, uint8_t value = 0) -> Packet* {
+      return set(Status::ControlChange, channel, controller, value);
     }
 
-    constexpr Packet* setAftertouchChannel(uint8_t channel, uint8_t pressure) {
-      return set(channel, Status::AftertouchChannel, pressure, 0);
+    auto setAftertouchChannel(uint8_t channel, uint8_t pressure) -> Packet* {
+      return set(Status::AftertouchChannel, channel, pressure, 0);
     }
 
-    constexpr Packet* setProgram(uint8_t channel, uint8_t value) {
-      return set(channel, Status::ProgramChange, value, 0);
+    auto setProgram(uint8_t channel, uint8_t value) {
+      return set(Status::ProgramChange, channel, value, 0);
     }
 
-    constexpr Packet* setPitchBend(uint8_t channel, int16_t value) {
+    auto setPitchBend(uint8_t channel, int16_t value) {
       // 14 bit – 8192..8191.
-      const uint16_t bits = value + 8192;
-      return set(channel, Status::PitchBend, bits & 0x7f, (bits >> 7) & 0x7f);
+      auto bits{uint16_t(value + 8192)};
+      return set(Status::PitchBend, channel, bits & 0x7f, (bits >> 7) & 0x7f);
     }
 
   private:
