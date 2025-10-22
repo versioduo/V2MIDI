@@ -43,3 +43,6 @@ Support for **Song Position Pointer** counting, **Start**, **Stop**, **Continue*
 ## File
 
 MIDI File parser and player
+
+# Copying
+Anyone can use this public domain work without having to seek authorisation, no one can ever own it.
