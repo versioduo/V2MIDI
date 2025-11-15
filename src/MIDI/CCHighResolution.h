@@ -53,7 +53,7 @@ namespace V2MIDI::CC {
     // This implementation:
     // - After a reset, setting a value of 0 will not cause an update.
     // - The very first MSB causes an update without waiting for a possible LSB.
-    // - If we have seen an LSB for the previuos update, we defer the update
+    // - If we have seen an LSB for the previous update, we defer the update
     //   for the next MSB until the LSB arrives.
     // - If we see two MSBs without an LSB in-between, reset the waiting for
     //   the LSB and send an update.
